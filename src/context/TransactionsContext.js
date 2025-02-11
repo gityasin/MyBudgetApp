@@ -11,6 +11,18 @@ function transactionsReducer(state, action) {
       return { ...state, transactions: action.payload };
     case 'ADD_TRANSACTION':
       return { ...state, transactions: [...state.transactions, action.payload] };
+    case 'UPDATE_TRANSACTION':
+      return {
+        ...state,
+        transactions: state.transactions.map(tx =>
+          tx.id === action.payload.id ? action.payload : tx
+        ),
+      };
+    case 'DELETE_TRANSACTION':
+      return {
+        ...state,
+        transactions: state.transactions.filter(tx => tx.id !== action.payload)
+      };
     default:
       return state;
   }

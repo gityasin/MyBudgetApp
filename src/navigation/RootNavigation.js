@@ -39,10 +39,14 @@ function HomeStack() {
       <Stack.Screen 
         name="AddTransaction" 
         component={AddTransactionScreen}
-        options={{
-          title: 'Add Transaction',
-          presentation: 'modal',
-        }}
+        options={({ route }) => ({
+          title: route.params?.isEditing ? 'Edit Transaction' : 'Add Transaction',
+          headerStyle: {
+            backgroundColor: colors.surface,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
+        })}
       />
     </Stack.Navigator>
   );

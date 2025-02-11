@@ -1,15 +1,23 @@
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { TextInput, Button, Switch, Text, HelperText, Portal, Snackbar } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { TextInput, Button, Switch, Text, HelperText, Portal, Snackbar, useTheme } from 'react-native-paper';
 import { useTransactions } from '../context/TransactionsContext';
-import { useAppTheme } from '../../theme';
 
 const CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Other'];
 
-export default function AddTransactionScreen({ navigation }) {
+export default function AddTransactionScreen({ navigation, route }) {
   const { dispatch } = useTransactions();
-  const { theme } = useAppTheme();
-  const { colors, spacing, typography } = theme;
+  const theme = useTheme();
+  const { colors } = theme;
+
+  console.log('AddTransactionScreen mounted with route params:', route.params);
+
+  const params = route.params || {};
+  const isEditing = Boolean(params.isEditing);
+  const existingTransaction = params.transaction;
+
+  console.log('Is editing:', isEditing);
+  console.log('Existing transaction:', existingTransaction);
 
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -17,6 +25,16 @@ export default function AddTransactionScreen({ navigation }) {
   const [isRecurring, setIsRecurring] = useState(false);
   const [errors, setErrors] = useState({});
   const [showSnackbar, setShowSnackbar] = useState(false);
+
+  useEffect(() => {
+    console.log('Setting form values. IsEditing:', isEditing, 'Transaction:', existingTransaction);
+    if (isEditing && existingTransaction) {
+      setDescription(existingTransaction.description || '');
+      setAmount(existingTransaction.amount ? existingTransaction.amount.toString() : '');
+      setCategory(existingTransaction.category || '');
+      setIsRecurring(Boolean(existingTransaction.isRecurring));
+    }
+  }, [isEditing, existingTransaction]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -39,20 +57,34 @@ export default function AddTransactionScreen({ navigation }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleAdd = () => {
+  const handleSubmit = () => {
     if (!validateForm()) return;
 
-    dispatch({
-      type: 'ADD_TRANSACTION',
-      payload: {
-        id: Date.now().toString(),
-        description: description.trim(),
-        amount: parseFloat(amount),
-        date: new Date().toISOString().split('T')[0],
-        category: category.trim(),
-        isRecurring,
-      },
-    });
+    const transactionData = {
+      description: description.trim(),
+      amount: parseFloat(amount),
+      date: new Date().toISOString().split('T')[0],
+      category: category.trim(),
+      isRecurring,
+    };
+
+    if (isEditing) {
+      dispatch({
+        type: 'UPDATE_TRANSACTION',
+        payload: {
+          id: existingTransaction.id,
+          ...transactionData,
+        },
+      });
+    } else {
+      dispatch({
+        type: 'ADD_TRANSACTION',
+        payload: {
+          id: Date.now().toString(),
+          ...transactionData,
+        },
+      });
+    }
 
     setShowSnackbar(true);
     setTimeout(() => {
@@ -61,97 +93,101 @@ export default function AddTransactionScreen({ navigation }) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text variant="headlineMedium" style={[styles.title, { color: colors.primary }]}>
-        Add Transaction
-      </Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.content}>
+        <Text variant="headlineMedium" style={[styles.title, { color: colors.primary }]}>
+          {isEditing ? 'Edit Transaction' : 'Add Transaction'}
+        </Text>
 
-      <TextInput
-        mode="outlined"
-        label="Description"
-        value={description}
-        onChangeText={(text) => {
-          setDescription(text);
-          setErrors({ ...errors, description: '' });
-        }}
-        error={!!errors.description}
-        style={styles.input}
-        accessibilityLabel="Transaction description input"
-      />
-      <HelperText type="error" visible={!!errors.description}>
-        {errors.description}
-      </HelperText>
-
-      <TextInput
-        mode="outlined"
-        label="Amount"
-        value={amount}
-        onChangeText={(text) => {
-          setAmount(text);
-          setErrors({ ...errors, amount: '' });
-        }}
-        keyboardType="decimal-pad"
-        error={!!errors.amount}
-        style={styles.input}
-        left={<TextInput.Affix text="$" />}
-        accessibilityLabel="Transaction amount input"
-      />
-      <HelperText type="error" visible={!!errors.amount}>
-        {errors.amount}
-      </HelperText>
-
-      <TextInput
-        mode="outlined"
-        label="Category"
-        value={category}
-        onChangeText={(text) => {
-          setCategory(text);
-          setErrors({ ...errors, category: '' });
-        }}
-        error={!!errors.category}
-        style={styles.input}
-        accessibilityLabel="Transaction category input"
-      />
-      <HelperText type="info" visible={true}>
-        Suggested: {CATEGORIES.join(', ')}
-      </HelperText>
-
-      <View style={styles.switchContainer}>
-        <Text variant="bodyLarge">Recurring Monthly?</Text>
-        <Switch
-          value={isRecurring}
-          onValueChange={setIsRecurring}
-          color={colors.primary}
+        <TextInput
+          mode="outlined"
+          label="Description"
+          value={description}
+          onChangeText={(text) => {
+            setDescription(text);
+            setErrors({ ...errors, description: '' });
+          }}
+          error={!!errors.description}
+          style={styles.input}
+          accessibilityLabel="Transaction description input"
         />
-      </View>
+        <HelperText type="error" visible={!!errors.description}>
+          {errors.description}
+        </HelperText>
 
-      <Button
-        mode="contained"
-        onPress={handleAdd}
-        style={styles.button}
-        labelStyle={styles.buttonLabel}
-        accessibilityLabel="Add transaction button"
-      >
-        Add Transaction
-      </Button>
+        <TextInput
+          mode="outlined"
+          label="Amount"
+          value={amount}
+          onChangeText={(text) => {
+            setAmount(text);
+            setErrors({ ...errors, amount: '' });
+          }}
+          keyboardType="decimal-pad"
+          error={!!errors.amount}
+          style={styles.input}
+          left={<TextInput.Affix text="$" />}
+          accessibilityLabel="Transaction amount input"
+        />
+        <HelperText type="error" visible={!!errors.amount}>
+          {errors.amount}
+        </HelperText>
 
-      <Portal>
-        <Snackbar
-          visible={showSnackbar}
-          onDismiss={() => setShowSnackbar(false)}
-          duration={2000}
-          style={{ backgroundColor: colors.success }}
+        <TextInput
+          mode="outlined"
+          label="Category"
+          value={category}
+          onChangeText={(text) => {
+            setCategory(text);
+            setErrors({ ...errors, category: '' });
+          }}
+          error={!!errors.category}
+          style={styles.input}
+          accessibilityLabel="Transaction category input"
+        />
+        <HelperText type="info" visible={true}>
+          Suggested: {CATEGORIES.join(', ')}
+        </HelperText>
+
+        <View style={styles.switchContainer}>
+          <Text variant="bodyLarge">Recurring Monthly?</Text>
+          <Switch
+            value={isRecurring}
+            onValueChange={setIsRecurring}
+            color={colors.primary}
+          />
+        </View>
+
+        <Button
+          mode="contained"
+          onPress={handleSubmit}
+          style={styles.button}
+          labelStyle={styles.buttonLabel}
+          accessibilityLabel={isEditing ? "Update transaction button" : "Add transaction button"}
         >
-          Transaction added successfully!
-        </Snackbar>
-      </Portal>
-    </View>
+          {isEditing ? 'Update Transaction' : 'Add Transaction'}
+        </Button>
+
+        <Portal>
+          <Snackbar
+            visible={showSnackbar}
+            onDismiss={() => setShowSnackbar(false)}
+            duration={2000}
+            style={{ backgroundColor: colors.success }}
+          >
+            {isEditing ? 'Transaction updated successfully!' : 'Transaction added successfully!'}
+          </Snackbar>
+        </Portal>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  content: {
     padding: 16,
   },
   title: {

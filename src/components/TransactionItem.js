@@ -1,7 +1,9 @@
-import React from 'react';
-import { StyleSheet } from 'react-native';
-import { Surface, Text, List, useTheme, TouchableRipple } from 'react-native-paper';
+import React, { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { Surface, Text, List, useTheme, TouchableRipple, Menu, IconButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTransactions } from '../context/TransactionsContext';
+import { useNavigation } from '@react-navigation/native';
 
 const CATEGORY_ICONS = {
   Food: 'food',
@@ -15,6 +17,9 @@ const CATEGORY_ICONS = {
 export default function TransactionItem({ transaction, onPress }) {
   const theme = useTheme();
   const { colors } = theme;
+  const { dispatch } = useTransactions();
+  const [menuVisible, setMenuVisible] = useState(false);
+  const navigation = useNavigation();
 
   const isExpense = transaction.amount < 0;
   const amount = Math.abs(transaction.amount);
@@ -25,6 +30,26 @@ export default function TransactionItem({ transaction, onPress }) {
     month: 'short',
     day: 'numeric',
   });
+
+  const handleDelete = () => {
+    dispatch({
+      type: 'DELETE_TRANSACTION',
+      payload: transaction.id,
+    });
+    setMenuVisible(false);
+  };
+
+  const handleEdit = () => {
+    setMenuVisible(false);
+    console.log('Editing transaction:', transaction);
+    navigation.navigate('AddTransaction', {
+      isEditing: true,
+      transaction: {
+        ...transaction,
+        amount: Math.abs(transaction.amount),
+      },
+    });
+  };
 
   return (
     <Surface style={styles.surface} elevation={1}>
@@ -45,16 +70,40 @@ export default function TransactionItem({ transaction, onPress }) {
             />
           )}
           right={props => (
-            <Text
-              {...props}
-              variant="titleMedium"
-              style={[
-                styles.amount,
-                { color: isExpense ? colors.error : colors.success }
-              ]}
-            >
-              {isExpense ? '-' : '+'}${amount.toFixed(2)}
-            </Text>
+            <View style={styles.rightContainer}>
+              <Text
+                {...props}
+                variant="titleMedium"
+                style={[
+                  styles.amount,
+                  { color: isExpense ? colors.error : colors.success }
+                ]}
+              >
+                {isExpense ? '-' : '+'}${amount.toFixed(2)}
+              </Text>
+              <Menu
+                visible={menuVisible}
+                onDismiss={() => setMenuVisible(false)}
+                anchor={
+                  <IconButton
+                    icon="dots-vertical"
+                    size={20}
+                    onPress={() => setMenuVisible(true)}
+                  />
+                }
+              >
+                <Menu.Item
+                  onPress={handleEdit}
+                  title="Edit"
+                  leadingIcon="pencil"
+                />
+                <Menu.Item
+                  onPress={handleDelete}
+                  title="Delete"
+                  leadingIcon="delete"
+                />
+              </Menu>
+            </View>
           )}
           titleStyle={styles.title}
           descriptionStyle={[styles.description, { color: colors.textSecondary }]}
@@ -82,5 +131,10 @@ const styles = StyleSheet.create({
   amount: {
     fontWeight: '600',
     alignSelf: 'center',
+  },
+  rightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 });

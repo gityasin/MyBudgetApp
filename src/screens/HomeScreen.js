@@ -95,7 +95,10 @@ export default function HomeScreen({ navigation }) {
       <FAB
         icon="plus"
         style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-        onPress={() => navigation.navigate('AddTransaction')}
+        onPress={() => {
+          console.log('Navigating to AddTransaction from FAB');
+          navigation.navigate('AddTransaction');
+        }}
         label="Add Transaction"
       />
     </View>
