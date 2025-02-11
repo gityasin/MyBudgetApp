@@ -24,7 +24,7 @@ export default function TransactionItem({ transaction, onPress }) {
   const isExpense = transaction.amount < 0;
   const amount = Math.abs(transaction.amount);
   const icon = CATEGORY_ICONS[transaction.category] || CATEGORY_ICONS.Other;
-  
+
   const formattedDate = new Date(transaction.date).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'short',
@@ -41,7 +41,7 @@ export default function TransactionItem({ transaction, onPress }) {
 
   const handleEdit = () => {
     setMenuVisible(false);
-    console.log('Editing transaction:', transaction);
+    console.log('Editing transaction:', transaction); // Log the transaction here!
     navigation.navigate('AddTransaction', {
       isEditing: true,
       transaction: {
