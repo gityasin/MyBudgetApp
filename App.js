@@ -9,6 +9,23 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Platform, Text } from 'react-native';
 
+const linking = {
+  enabled: true,
+  config: {
+    screens: {
+      HomeStack: {
+        path: '',
+        screens: {
+          Home: '',
+          AddTransaction: 'add-transaction',
+        }
+      },
+      Charts: 'charts',
+      Settings: 'settings',
+    },
+  },
+};
+
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -17,7 +34,9 @@ export default function App() {
           <LanguageProvider>
             <CategoriesProvider>
               <TransactionsProvider>
-                <NavigationContainer>
+                <NavigationContainer
+                  linking={Platform.OS === 'web' ? linking : undefined}
+                >
                   <RootNavigation />
                 </NavigationContainer>
               </TransactionsProvider>
