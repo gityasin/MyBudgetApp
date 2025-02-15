@@ -9,26 +9,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Platform, Text } from 'react-native';
 
-// Configure linking for web
-const linking = {
-  enabled: true,
-  prefixes: ['https://gityasin.github.io/MyBudgetApp'],
-  config: {
-    initialRouteName: 'HomeStack',
-    screens: {
-      HomeStack: {
-        path: '',
-        screens: {
-          Home: '',
-          AddTransaction: 'add-transaction',
-        }
-      },
-      Charts: 'charts',
-      Settings: 'settings',
-    },
-  },
-};
-
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -37,10 +17,7 @@ export default function App() {
           <LanguageProvider>
             <CategoriesProvider>
               <TransactionsProvider>
-                <NavigationContainer
-                  linking={linking}
-                  fallback={<Text>Loading...</Text>}
-                >
+                <NavigationContainer>
                   <RootNavigation />
                 </NavigationContainer>
               </TransactionsProvider>

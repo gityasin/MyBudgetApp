@@ -22,13 +22,7 @@
     },
     "web": {
       "favicon": "./assets/icon.png",
-      "bundler": "metro",
-      "build": {
-        "babel": {
-          "include": ["@expo/vector-icons"]
-        }
-      },
-      "publicPath": "/MyBudgetApp/"
+      "bundler": "metro"
     }
   }
 }

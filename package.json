@@ -9,8 +9,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "build": "expo export -p web",
-    "predeploy": "npm run build",
+    "build:web": "expo start --web --no-dev --minify",
+    "predeploy": "expo export --platform web",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
