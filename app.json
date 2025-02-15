@@ -22,7 +22,15 @@
     },
     "web": {
       "favicon": "./assets/icon.png",
-      "bundler": "webpack"
+      "bundler": "webpack",
+      "build": {
+        "babel": {
+          "include": [
+            "@expo/vector-icons",
+            "react-native-vector-icons"
+          ]
+        }
+      }
     },
     "scheme": "mybudgetapp"
   }

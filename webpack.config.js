@@ -27,5 +27,14 @@ module.exports = async function (env, argv) {
     '@assets': path.resolve(__dirname, 'assets'),
   };
 
+  // Add rule for handling icon fonts using asset modules
+  config.module.rules.push({
+    test: /\.(woff|woff2|eot|ttf|otf)$/i,
+    type: 'asset/resource',
+    generator: {
+      filename: 'fonts/[name][ext]',
+    },
+  });
+
   return config;
 }; 
