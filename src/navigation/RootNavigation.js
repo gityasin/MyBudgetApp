@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import HomeScreen from '../screens/HomeScreen';
 import AddTransactionScreen from '../screens/AddTransactionScreen';
@@ -126,43 +126,58 @@ function TabNavigator() {
 export default function RootNavigation() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
-  const navigation = useNavigation();
+  const [, forceUpdate] = useState({});
 
-  const checkOnboardingStatus = async () => {
+  const checkOnboardingStatus = useCallback(async () => {
     try {
       console.log('Checking onboarding status...');
       const status = await AsyncStorage.getItem('hasCompletedOnboarding');
       console.log('Retrieved onboarding status:', status);
       
-      const preferences = await AsyncStorage.getItem('userPreferences');
-      console.log('Retrieved preferences:', preferences);
+      const shouldShowMainApp = status === 'true';
+      console.log('Should show main app:', shouldShowMainApp);
       
-      const shouldShowOnboarding = status !== 'true';
-      console.log('Should show onboarding:', shouldShowOnboarding);
-      
-      setHasCompletedOnboarding(!shouldShowOnboarding);
+      setHasCompletedOnboarding(shouldShowMainApp);
+      forceUpdate({});
     } catch (error) {
       console.error('Error in checkOnboardingStatus:', error);
       setHasCompletedOnboarding(false);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Check status on mount
-  useEffect(() => {
-    checkOnboardingStatus();
   }, []);
 
-  // Add listener for navigation state changes
+  // Check on mount
   useEffect(() => {
-    const unsubscribe = navigation.addListener('state', () => {
-      console.log('Navigation state changed, rechecking onboarding status...');
-      checkOnboardingStatus();
-    });
+    checkOnboardingStatus();
+  }, [checkOnboardingStatus]);
 
-    return unsubscribe;
-  }, [navigation]);
+  // Check on focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Screen focused, checking onboarding status');
+      checkOnboardingStatus();
+    }, [checkOnboardingStatus])
+  );
+
+  // Add listener for storage changes
+  useEffect(() => {
+    const checkStorageChanges = async () => {
+      try {
+        const status = await AsyncStorage.getItem('hasCompletedOnboarding');
+        if (status === 'true' && !hasCompletedOnboarding) {
+          console.log('Storage changed, updating navigation state');
+          setHasCompletedOnboarding(true);
+          forceUpdate({});
+        }
+      } catch (error) {
+        console.error('Error checking storage changes:', error);
+      }
+    };
+
+    const interval = setInterval(checkStorageChanges, 500);
+    return () => clearInterval(interval);
+  }, [hasCompletedOnboarding]);
 
   if (isLoading) {
     return (
@@ -181,7 +196,7 @@ export default function RootNavigation() {
           name="Onboarding" 
           component={OnboardingScreen}
           options={{
-            animationEnabled: true,
+            animationEnabled: false,
             gestureEnabled: false
           }}
         />
@@ -190,7 +205,7 @@ export default function RootNavigation() {
           name="MainApp" 
           component={TabNavigator}
           options={{
-            animationEnabled: true,
+            animationEnabled: false
           }}
         />
       )}

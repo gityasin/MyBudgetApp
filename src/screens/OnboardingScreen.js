@@ -58,31 +58,41 @@ export default function OnboardingScreen({ navigation }) {
       console.log('Starting onboarding completion process...');
       console.log('Preferences to save:', preferences);
       
-      // First save the preferences
+      // First set the preferences
       await AsyncStorage.setItem('userPreferences', JSON.stringify(preferences));
-      console.log('Preferences saved successfully');
+      console.log('Preferences saved');
       
-      // Then set onboarding as completed
+      // Then mark onboarding as complete
       await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
-      console.log('Onboarding status saved successfully');
+      console.log('Onboarding marked as complete');
 
-      // Verify the values were saved correctly
-      const savedPreferences = await AsyncStorage.getItem('userPreferences');
-      const savedOnboardingStatus = await AsyncStorage.getItem('hasCompletedOnboarding');
-      console.log('Verification - Saved preferences:', savedPreferences);
-      console.log('Verification - Saved onboarding status:', savedOnboardingStatus);
-
-      console.log('Attempting navigation to MainApp...');
-      
-      // Use CommonActions for more reliable navigation
-      navigation.dispatch(
-        CommonActions.reset({
+      // Try multiple navigation methods
+      try {
+        // Method 1: Reset
+        navigation.reset({
           index: 0,
           routes: [{ name: 'MainApp' }],
-        })
-      );
-      
-      console.log('Navigation dispatch completed');
+        });
+      } catch (navError) {
+        console.error('Reset navigation failed:', navError);
+        try {
+          // Method 2: Replace
+          navigation.replace('MainApp');
+        } catch (replaceError) {
+          console.error('Replace navigation failed:', replaceError);
+          try {
+            // Method 3: Dispatch
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'MainApp' }],
+              })
+            );
+          } catch (dispatchError) {
+            console.error('Dispatch navigation failed:', dispatchError);
+          }
+        }
+      }
     } catch (error) {
       console.error('Error in handleComplete:', error);
       Alert.alert(
