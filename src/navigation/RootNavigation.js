@@ -130,31 +130,38 @@ export default function RootNavigation() {
 
   const checkOnboardingStatus = async () => {
     try {
+      console.log('Checking onboarding status...');
       const status = await AsyncStorage.getItem('hasCompletedOnboarding');
-      console.log('Checking onboarding status:', status);
-      setHasCompletedOnboarding(status === 'true');
+      console.log('Retrieved onboarding status:', status);
+      
+      const preferences = await AsyncStorage.getItem('userPreferences');
+      console.log('Retrieved preferences:', preferences);
+      
+      const shouldShowOnboarding = status !== 'true';
+      console.log('Should show onboarding:', shouldShowOnboarding);
+      
+      setHasCompletedOnboarding(!shouldShowOnboarding);
     } catch (error) {
-      console.error('Error checking onboarding status:', error);
+      console.error('Error in checkOnboardingStatus:', error);
       setHasCompletedOnboarding(false);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Check status on mount
   useEffect(() => {
     checkOnboardingStatus();
   }, []);
 
-  // Add a listener for changes to AsyncStorage
+  // Add listener for navigation state changes
   useEffect(() => {
-    const listener = navigation => {
-      if (navigation.type === 'state') {
-        checkOnboardingStatus();
-      }
-    };
+    const unsubscribe = navigation.addListener('state', () => {
+      console.log('Navigation state changed, rechecking onboarding status...');
+      checkOnboardingStatus();
+    });
 
-    const unsubscribe = navigation?.addListener('state', listener);
-    return () => unsubscribe?.();
+    return unsubscribe;
   }, [navigation]);
 
   if (isLoading) {
@@ -165,7 +172,7 @@ export default function RootNavigation() {
     );
   }
 
-  console.log('Rendering RootNavigation, hasCompletedOnboarding:', hasCompletedOnboarding);
+  console.log('Rendering RootNavigation with hasCompletedOnboarding:', hasCompletedOnboarding);
 
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>

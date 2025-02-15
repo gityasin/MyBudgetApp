@@ -55,22 +55,36 @@ export default function OnboardingScreen({ navigation }) {
         theme: isDarkMode ? 'dark' : 'light'
       };
       
-      console.log('Saving preferences:', preferences);
+      console.log('Starting onboarding completion process...');
+      console.log('Preferences to save:', preferences);
       
       // First save the preferences
       await AsyncStorage.setItem('userPreferences', JSON.stringify(preferences));
+      console.log('Preferences saved successfully');
       
       // Then set onboarding as completed
       await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+      console.log('Onboarding status saved successfully');
 
-      console.log('Preferences saved, navigating to MainApp');
+      // Verify the values were saved correctly
+      const savedPreferences = await AsyncStorage.getItem('userPreferences');
+      const savedOnboardingStatus = await AsyncStorage.getItem('hasCompletedOnboarding');
+      console.log('Verification - Saved preferences:', savedPreferences);
+      console.log('Verification - Saved onboarding status:', savedOnboardingStatus);
 
-      // Force an immediate navigation
-      setTimeout(() => {
-        navigation.replace('MainApp');
-      }, 0);
+      console.log('Attempting navigation to MainApp...');
+      
+      // Use CommonActions for more reliable navigation
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'MainApp' }],
+        })
+      );
+      
+      console.log('Navigation dispatch completed');
     } catch (error) {
-      console.error('Error completing onboarding:', error);
+      console.error('Error in handleComplete:', error);
       Alert.alert(
         'Error',
         'There was an error saving your preferences. Please try again.',
