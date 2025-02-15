@@ -27,7 +27,8 @@
         "babel": {
           "include": ["@expo/vector-icons"]
         }
-      }
+      },
+      "publicPath": "/MyBudgetApp/"
     }
   }
 }

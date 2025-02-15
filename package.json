@@ -1,7 +1,7 @@
 {
   "name": "my-budget-app",
   "version": "1.0.0",
-  "homepage": "https://yasin.github.io/MyBudgetApp",
+  "homepage": "https://gityasin.github.io/MyBudgetApp",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
