@@ -7,6 +7,24 @@ import RootNavigation from './src/navigation/RootNavigation';
 import { ThemeProvider } from './theme';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Platform } from 'react-native';
+
+// Configure linking for web
+const linking = {
+  prefixes: ['https://yasin.github.io/MyBudgetApp'],
+  config: {
+    screens: {
+      HomeStack: {
+        screens: {
+          Home: '',
+          AddTransaction: 'add-transaction',
+        }
+      },
+      Charts: 'charts',
+      Settings: 'settings',
+    },
+  },
+};
 
 export default function App() {
   return (
@@ -16,7 +34,10 @@ export default function App() {
           <LanguageProvider>
             <CategoriesProvider>
               <TransactionsProvider>
-                <NavigationContainer>
+                <NavigationContainer
+                  linking={Platform.OS === 'web' ? linking : undefined}
+                  fallback={<Text>Loading...</Text>}
+                >
                   <RootNavigation />
                 </NavigationContainer>
               </TransactionsProvider>
