@@ -10,15 +10,14 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Platform, Text } from 'react-native';
 
 const linking = {
-  prefixes: ['https://gityasin.github.io/MyBudgetApp'],
+  enabled: true,
+  prefixes: ['https://gityasin.github.io/MyBudgetApp', 'mybudgetapp://'],
   config: {
-    initialRouteName: 'HomeStack',
     screens: {
       HomeStack: {
-        initialRouteName: 'Home',
         screens: {
           Home: '',
-          AddTransaction: 'add-transaction',
+          AddTransaction: 'transaction/add',
         }
       },
       Charts: 'charts',
@@ -36,8 +35,12 @@ export default function App() {
             <CategoriesProvider>
               <TransactionsProvider>
                 <NavigationContainer
-                  linking={Platform.OS === 'web' ? linking : undefined}
+                  linking={linking}
                   fallback={<Text>Loading...</Text>}
+                  documentTitle={{
+                    formatter: (options, route) =>
+                      `My Budget App${route?.name ? ` - ${route.name}` : ''}`,
+                  }}
                 >
                   <RootNavigation />
                 </NavigationContainer>
