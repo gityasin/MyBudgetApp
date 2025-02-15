@@ -1,5 +1,6 @@
 // Currency formatting utilities
 export const CURRENCIES = {
+  TRY: { symbol: '₺', locale: 'tr-TR', position: 'after', rate: 31.89 },
   USD: { symbol: '$', locale: 'en-US', position: 'before', rate: 1 },
   EUR: { symbol: '€', locale: 'de-DE', position: 'after', rate: 0.91 },
   GBP: { symbol: '£', locale: 'en-GB', position: 'before', rate: 0.79 },
@@ -9,7 +10,6 @@ export const CURRENCIES = {
   AUD: { symbol: '$', locale: 'en-AU', position: 'before', rate: 1.54 },
   CAD: { symbol: '$', locale: 'en-CA', position: 'before', rate: 1.36 },
   CHF: { symbol: 'CHF', locale: 'de-CH', position: 'before', rate: 0.89 },
-  TRY: { symbol: '₺', locale: 'tr-TR', position: 'after', rate: 31.89 },
 };
 
 export const convertAmount = (amount, fromCurrency = 'USD', toCurrency = 'USD') => {

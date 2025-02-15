@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Animated } from 'react-native';
 import { TextInput, Button, Switch, Text, HelperText, useTheme, SegmentedButtons, Menu } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTransactions } from '../context/TransactionsContext';
 import { useCategories } from '../context/CategoriesContext';
 import { getCurrencySymbol } from '../services/format';
@@ -244,7 +245,13 @@ export default function AddTransactionScreen({ navigation, route }) {
                   style={[styles.input, { flex: 1 }]}
                   right={
                     <TextInput.Icon 
-                      icon="menu-down" 
+                      icon={() => (
+                        <MaterialCommunityIcons
+                          name="menu-down"
+                          size={24}
+                          color={colors.primary}
+                        />
+                      )}
                       onPress={() => setShowCategoryMenu(true)}
                     />
                   }

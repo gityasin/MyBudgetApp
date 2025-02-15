@@ -145,7 +145,11 @@ export default function SettingsScreen() {
                 {currency.label}
               </Text>
               {selectedCurrency === currency.code && (
-                <List.Icon icon="check" color={colors.primary} />
+                <MaterialCommunityIcons
+                  name="check"
+                  size={24}
+                  color={colors.primary}
+                />
               )}
             </TouchableOpacity>
           ))}
@@ -163,8 +167,8 @@ export default function SettingsScreen() {
 
   const renderLanguageSelector = () => {
     const languages = [
-      { code: 'en', label: 'English' },
-      { code: 'tr', label: 'Türkçe' }
+      { code: 'tr', label: 'Türkçe' },
+      { code: 'en', label: 'English' }
     ];
 
     return renderDialog(
@@ -188,7 +192,11 @@ export default function SettingsScreen() {
                 {lang.label}
               </Text>
               {language === lang.code && (
-                <List.Icon icon="check" color={colors.primary} />
+                <MaterialCommunityIcons
+                  name="check"
+                  size={24}
+                  color={colors.primary}
+                />
               )}
             </TouchableOpacity>
           ))}
@@ -298,19 +306,23 @@ export default function SettingsScreen() {
                 title={category}
                 right={props => (
                   <View style={styles.categoryActions}>
-                    <IconButton
-                      icon="pencil"
-                      size={20}
+                    <MaterialCommunityIcons
+                      name="pencil"
+                      size={24}
+                      color={colors.primary}
                       onPress={() => {
                         setSelectedCategory(category);
                         setEditedCategory(category);
                         setShowEditCategory(true);
                       }}
+                      style={{ padding: 8 }}
                     />
-                    <IconButton
-                      icon="delete"
-                      size={20}
+                    <MaterialCommunityIcons
+                      name="delete"
+                      size={24}
+                      color={colors.error}
                       onPress={() => handleDeleteCategory(category)}
+                      style={{ padding: 8 }}
                     />
                   </View>
                 )}
@@ -336,14 +348,28 @@ export default function SettingsScreen() {
             <List.Item
               title={t('version')}
               description="1.0.0"
-              left={props => <List.Icon {...props} icon="information" />}
+              left={props => (
+                <MaterialCommunityIcons
+                  name="information"
+                  size={24}
+                  color={props.color}
+                  style={props.style}
+                />
+              )}
             />
             <Divider />
             
             <List.Item
               title={t('helpAndSupport')}
               description={t('helpDesc')}
-              left={props => <List.Icon {...props} icon="help-circle" />}
+              left={props => (
+                <MaterialCommunityIcons
+                  name="help-circle"
+                  size={24}
+                  color={props.color}
+                  style={props.style}
+                />
+              )}
               onPress={() => {/* TODO: Implement help section */}}
             />
             <Divider />
@@ -351,7 +377,14 @@ export default function SettingsScreen() {
             <List.Item
               title={t('privacyPolicy')}
               description={t('privacyPolicyDesc')}
-              left={props => <List.Icon {...props} icon="shield-account" />}
+              left={props => (
+                <MaterialCommunityIcons
+                  name="shield-account"
+                  size={24}
+                  color={props.color}
+                  style={props.style}
+                />
+              )}
               onPress={() => {/* TODO: Implement privacy policy */}}
             />
           </List.Section>

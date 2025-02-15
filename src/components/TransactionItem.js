@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { Surface, Text, List, useTheme, TouchableRipple, Menu, IconButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTransactions } from '../context/TransactionsContext';
@@ -8,9 +8,9 @@ import { formatCurrency } from '../services/format';
 import { useLanguage } from '../context/LanguageContext';
 
 const CATEGORY_ICONS = {
-  Food: 'food',
+  Food: 'silverware-fork-knife',
   Transport: 'car',
-  Shopping: 'shopping',
+  Shopping: 'cart',
   Bills: 'file-document',
   Entertainment: 'gamepad-variant',
   Other: 'dots-horizontal',
@@ -53,64 +53,111 @@ export default function TransactionItem({ transaction, onPress }) {
     });
   };
 
+  const dynamicStyles = {
+    menuContent: {
+      backgroundColor: colors.surface,
+    }
+  };
+
   return (
     <Surface style={styles.surface} elevation={1}>
-      <TouchableRipple
-        onPress={onPress}
-        style={styles.touchable}
-        accessibilityRole="button"
-        accessibilityLabel={`${transaction.description} transaction of ${isExpense ? t('expense') : t('income')} ${formatCurrency(amount, selectedCurrency)}`}
-      >
-        <List.Item
-          title={transaction.description}
-          description={`${transaction.category} • ${formattedDate}`}
-          left={props => (
-            <List.Icon
-              {...props}
-              icon={icon}
-              color={colors.primary}
+      <View style={styles.container}>
+        <TouchableRipple
+          onPress={(e) => {
+            if (!menuVisible) {
+              onPress();
+            }
+          }}
+          style={[styles.touchable, { flex: 1 }]}
+          accessibilityRole="button"
+          disabled={menuVisible}
+          accessibilityLabel={`${transaction.description} transaction of ${isExpense ? t('expense') : t('income')} ${formatCurrency(amount, selectedCurrency)}`}
+        >
+          <List.Item
+            title={transaction.description}
+            description={`${transaction.category} • ${formattedDate}`}
+            left={props => (
+              <MaterialCommunityIcons
+                name={icon}
+                size={24}
+                color={colors.primary}
+                style={props.style}
+              />
+            )}
+            right={props => (
+              <View style={styles.rightContainer}>
+                <Text
+                  {...props}
+                  variant="titleMedium"
+                  style={[
+                    styles.amount,
+                    { color: isExpense ? colors.error : colors.success }
+                  ]}
+                >
+                  {isExpense ? '-' : '+'}{formatCurrency(amount, selectedCurrency)}
+                </Text>
+              </View>
+            )}
+            titleStyle={styles.title}
+            descriptionStyle={[styles.description, { color: colors.textSecondary }]}
+          />
+        </TouchableRipple>
+        
+        <View style={styles.menuContainer}>
+          <Menu
+            visible={menuVisible}
+            onDismiss={() => setMenuVisible(false)}
+            anchor={
+              <TouchableOpacity 
+                onPress={(e) => {
+                  e.stopPropagation();
+                  setMenuVisible(true);
+                }}
+                style={styles.menuButton}
+              >
+                <MaterialCommunityIcons
+                  name="dots-vertical"
+                  size={24}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+            }
+            contentStyle={[dynamicStyles.menuContent]}
+            anchorPosition="bottom"
+            statusBarHeight={0}
+            overlayAccessibilityLabel="Close menu"
+          >
+            <Menu.Item
+              onPress={(e) => {
+                e.stopPropagation();
+                handleEdit();
+              }}
+              title={t('edit')}
+              leadingIcon={props => (
+                <MaterialCommunityIcons
+                  name="pencil"
+                  size={20}
+                  color={props.color}
+                />
+              )}
             />
-          )}
-          right={props => (
-            <View style={styles.rightContainer}>
-              <Text
-                {...props}
-                variant="titleMedium"
-                style={[
-                  styles.amount,
-                  { color: isExpense ? colors.error : colors.success }
-                ]}
-              >
-                {isExpense ? '-' : '+'}{formatCurrency(amount, selectedCurrency)}
-              </Text>
-              <Menu
-                visible={menuVisible}
-                onDismiss={() => setMenuVisible(false)}
-                anchor={
-                  <IconButton
-                    icon="dots-vertical"
-                    size={20}
-                    onPress={() => setMenuVisible(true)}
-                  />
-                }
-              >
-                <Menu.Item
-                  onPress={handleEdit}
-                  title={t('edit')}
-                  leadingIcon="pencil"
+            <Menu.Item
+              onPress={(e) => {
+                e.stopPropagation();
+                handleDelete();
+              }}
+              title={t('delete')}
+              leadingIcon={props => (
+                <MaterialCommunityIcons
+                  name="delete"
+                  size={20}
+                  color={props.color}
                 />
-                <Menu.Item
-                  onPress={handleDelete}
-                  title={t('delete')}
-                  leadingIcon="delete"
-                />
-              </Menu>
-            </View>
-          )}
-          titleStyle={styles.title}
-          descriptionStyle={[styles.description, { color: colors.textSecondary }]}
-        />
-      </TouchableRipple>
+              )}
+            />
+          </Menu>
+        </View>
+      </View>
     </Surface>
   );
 }
@@ -120,6 +167,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderRadius: 8,
     overflow: 'hidden',
+  },
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   touchable: {
     flex: 1,
@@ -138,5 +189,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  menuContainer: {
+    paddingRight: 8,
+  },
+  menuButton: {
+    padding: 8,
+  },
+  menu: {
+    position: 'absolute',
+    right: 8,
+    zIndex: 3,
   },
 });
