@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 import { Text, FAB, Surface, useTheme, Divider } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTransactions } from '../context/TransactionsContext';
 import TransactionItem from '../components/TransactionItem';
 import { formatCurrency } from '../services/format';
@@ -99,7 +100,13 @@ export default function HomeScreen({ navigation }) {
       />
 
       <FAB
-        icon="plus"
+        icon={props => (
+          <MaterialCommunityIcons
+            name="plus"
+            size={24}
+            color={props.color}
+          />
+        )}
         style={[styles.fab, { backgroundColor: theme.colors.primary }]}
         onPress={() => navigation.navigate('AddTransaction')}
         label={t('addTransaction')}

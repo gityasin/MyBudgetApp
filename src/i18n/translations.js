@@ -70,6 +70,17 @@ export const translations = {
     total: 'Total',
     noExpenseData: 'No expense data available',
     addExpensesToSee: 'Add some expenses to see your spending breakdown',
+
+    // Onboarding Screen
+    selectLanguage: 'Select Your Language',
+    selectCurrency: 'Select Your Currency',
+    chooseTheme: 'Choose Your Theme',
+    lightTheme: 'Light Theme',
+    darkTheme: 'Dark Theme',
+    next: 'Next',
+    previous: 'Previous',
+    getStarted: 'Get Started',
+    welcome: 'Welcome to My Budget',
   },
   tr: {
     // General
@@ -142,5 +153,16 @@ export const translations = {
     total: 'Toplam',
     noExpenseData: 'Gider verisi bulunmuyor',
     addExpensesToSee: 'Harcama dağılımını görmek için gider ekleyin',
+
+    // Onboarding Screen
+    selectLanguage: 'Dilinizi Seçin',
+    selectCurrency: 'Para Biriminizi Seçin',
+    chooseTheme: 'Temanızı Seçin',
+    lightTheme: 'Açık Tema',
+    darkTheme: 'Koyu Tema',
+    next: 'İleri',
+    previous: 'Geri',
+    getStarted: 'Başlayın',
+    welcome: 'My Budget\'a Hoş Geldiniz',
   }
 }; 

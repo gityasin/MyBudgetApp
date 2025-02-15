@@ -25,15 +25,14 @@ module.exports = async function (env, argv) {
   config.resolve.alias = {
     ...config.resolve.alias,
     '@assets': path.resolve(__dirname, 'assets'),
+    'react-native-vector-icons': 'react-native-vector-icons/MaterialCommunityIcons',
   };
 
   // Add rule for handling icon fonts using asset modules
   config.module.rules.push({
-    test: /\.(woff|woff2|eot|ttf|otf)$/i,
+    test: /\.ttf$/,
     type: 'asset/resource',
-    generator: {
-      filename: 'fonts/[name][ext]',
-    },
+    include: path.resolve(__dirname, 'node_modules/react-native-vector-icons'),
   });
 
   return config;

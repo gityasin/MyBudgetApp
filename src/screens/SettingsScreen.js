@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Modal as RNModal } from 'react-native';
 import { List, Switch, Divider, Text, Surface, useTheme, Button, TextInput, IconButton } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { scheduleDailyReminder } from '../notifications/NotificationsService';
 import { useAppTheme } from '../../theme';
 import { getAvailableCurrencies } from '../services/format';
@@ -215,7 +216,14 @@ export default function SettingsScreen() {
             <List.Item
               title={t('darkMode')}
               description={t('darkModeDesc')}
-              left={props => <List.Icon {...props} icon="theme-light-dark" />}
+              left={props => (
+                <MaterialCommunityIcons
+                  name="theme-light-dark"
+                  size={24}
+                  color={props.color}
+                  style={props.style}
+                />
+              )}
               right={() => (
                 <Switch
                   value={isDarkMode}
@@ -229,7 +237,14 @@ export default function SettingsScreen() {
             <List.Item
               title={t('dailyReminders')}
               description={t('dailyRemindersDesc')}
-              left={props => <List.Icon {...props} icon="bell" />}
+              left={props => (
+                <MaterialCommunityIcons
+                  name="bell"
+                  size={24}
+                  color={props.color}
+                  style={props.style}
+                />
+              )}
               right={() => (
                 <Switch
                   value={notificationsEnabled}
@@ -243,7 +258,14 @@ export default function SettingsScreen() {
             <List.Item
               title={t('currencyFormat')}
               description={`${t('currentCurrency')}${selectedCurrencyDetails?.label || 'USD ($)'}`}
-              left={props => <List.Icon {...props} icon="currency-usd" />}
+              left={props => (
+                <MaterialCommunityIcons
+                  name="currency-usd"
+                  size={24}
+                  color={props.color}
+                  style={props.style}
+                />
+              )}
               onPress={() => setShowCurrencySelector(true)}
             />
             <Divider />
@@ -251,7 +273,14 @@ export default function SettingsScreen() {
             <List.Item
               title={t('language')}
               description={t('languageDesc')}
-              left={props => <List.Icon {...props} icon="translate" />}
+              left={props => (
+                <MaterialCommunityIcons
+                  name="translate"
+                  size={24}
+                  color={props.color}
+                  style={props.style}
+                />
+              )}
               onPress={() => setShowLanguageSelector(true)}
             />
           </List.Section>
