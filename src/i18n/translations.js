@@ -81,6 +81,11 @@ export const translations = {
     previous: 'Previous',
     getStarted: 'Get Started',
     welcome: 'Welcome to My Budget',
+
+    // Navigation
+    tabHome: 'Home',
+    tabCharts: 'Charts',
+    tabSettings: 'Settings',
   },
   tr: {
     // General
@@ -164,5 +169,10 @@ export const translations = {
     previous: 'Geri',
     getStarted: 'Başlayın',
     welcome: 'My Budget\'a Hoş Geldiniz',
+
+    // Navigation
+    tabHome: 'Ana Sayfa',
+    tabCharts: 'Grafikler',
+    tabSettings: 'Ayarlar',
   }
 }; 

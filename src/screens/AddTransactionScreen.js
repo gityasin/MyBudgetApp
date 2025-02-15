@@ -55,7 +55,7 @@ export default function AddTransactionScreen({ navigation, route }) {
   console.log('Navigation prop:', navigation);
   console.log('Route prop:', route);
   
-  const { dispatch } = useTransactions();
+  const { dispatch, selectedCurrency } = useTransactions();
   const { categories, addCategory } = useCategories();
   console.log('TransactionsContext dispatch available:', !!dispatch);
   
@@ -64,7 +64,6 @@ export default function AddTransactionScreen({ navigation, route }) {
   
   const { colors } = theme;
   const { t } = useLanguage();
-  const [selectedCurrency, setSelectedCurrency] = useState('USD');
 
   console.log('AddTransactionScreen mounted with route params:', route.params);
 
@@ -94,19 +93,7 @@ export default function AddTransactionScreen({ navigation, route }) {
       setIsRecurring(Boolean(existingTransaction.isRecurring));
       setTransactionType(existingTransaction.amount < 0 ? 'expense' : 'income');
     }
-    loadSelectedCurrency();
   }, [isEditing, existingTransaction]);
-
-  const loadSelectedCurrency = async () => {
-    try {
-      const currency = await AsyncStorage.getItem('selectedCurrency');
-      if (currency) {
-        setSelectedCurrency(currency);
-      }
-    } catch (error) {
-      console.warn('Error loading currency preference:', error);
-    }
-  };
 
   const validateForm = () => {
     const newErrors = {};

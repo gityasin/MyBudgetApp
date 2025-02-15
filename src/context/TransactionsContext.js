@@ -39,20 +39,36 @@ const TransactionsContext = createContext();
 
 export function TransactionsProvider({ children }) {
   const [state, dispatch] = useReducer(transactionsReducer, initialState);
-  const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const [selectedCurrency, setSelectedCurrency] = useState('TRY');
 
   // Load initial data
   useEffect(() => {
     const loadInitialData = async () => {
-      const [stored, storedCurrency] = await Promise.all([
-        loadTransactions(),
-        AsyncStorage.getItem('selectedCurrency')
-      ]);
+      try {
+        const [stored, storedCurrency, userPreferences] = await Promise.all([
+          loadTransactions(),
+          AsyncStorage.getItem('selectedCurrency'),
+          AsyncStorage.getItem('userPreferences')
+        ]);
 
-      dispatch({ type: 'SET_TRANSACTIONS', payload: stored });
-      
-      if (storedCurrency) {
-        setSelectedCurrency(storedCurrency);
+        dispatch({ type: 'SET_TRANSACTIONS', payload: stored });
+        
+        // First check userPreferences (set during onboarding)
+        if (userPreferences) {
+          const { currency } = JSON.parse(userPreferences);
+          if (currency) {
+            setSelectedCurrency(currency);
+            await AsyncStorage.setItem('selectedCurrency', currency);
+            return;
+          }
+        }
+        
+        // Fall back to stored currency if available
+        if (storedCurrency) {
+          setSelectedCurrency(storedCurrency);
+        }
+      } catch (error) {
+        console.error('Error loading initial data:', error);
       }
     };
 

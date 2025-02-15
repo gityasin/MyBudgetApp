@@ -6,6 +6,7 @@ import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useLanguage } from '../context/LanguageContext';
 
 import HomeScreen from '../screens/HomeScreen';
 import AddTransactionScreen from '../screens/AddTransactionScreen';
@@ -59,6 +60,7 @@ function HomeStack() {
 
 function TabNavigator() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
 
   const screenOptions = {
     headerShown: true,
@@ -77,6 +79,7 @@ function TabNavigator() {
       paddingVertical: 8,
       height: 60,
     },
+    tabBarShowLabel: false,
     tabBarActiveTintColor: colors.primary,
     tabBarInactiveTintColor: colors.textSecondary,
     tabBarLabelStyle: {
@@ -94,7 +97,7 @@ function TabNavigator() {
         name="HomeStack"
         component={HomeStack}
         options={{
-          title: 'Home',
+          title: t('tabHome'),
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Icon name="home" size={size} color={color} />
@@ -105,6 +108,7 @@ function TabNavigator() {
         name="Charts"
         component={ChartScreen}
         options={{
+          title: t('tabCharts'),
           tabBarIcon: ({ color, size }) => (
             <Icon name="chart-bar" size={size} color={color} />
           ),
@@ -114,6 +118,7 @@ function TabNavigator() {
         name="Settings"
         component={SettingsScreen}
         options={{
+          title: t('tabSettings'),
           tabBarIcon: ({ color, size }) => (
             <Icon name="cog" size={size} color={color} />
           ),
