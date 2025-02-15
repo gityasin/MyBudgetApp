@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "test": "jest",
     "build": "expo export:web",
-    "predeploy": "npm run build && copy 404.html web-build\\",
+    "predeploy": "npm run build",
     "deploy": "gh-pages -d web-build"
   },
   "dependencies": {

@@ -9,23 +9,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Platform, Text } from 'react-native';
 
-const linking = {
-  enabled: true,
-  prefixes: ['https://gityasin.github.io/MyBudgetApp', 'mybudgetapp://'],
-  config: {
-    screens: {
-      HomeStack: {
-        screens: {
-          Home: '',
-          AddTransaction: 'transaction/add',
-        }
-      },
-      Charts: 'charts',
-      Settings: 'settings',
-    },
-  },
-};
-
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -34,14 +17,7 @@ export default function App() {
           <LanguageProvider>
             <CategoriesProvider>
               <TransactionsProvider>
-                <NavigationContainer
-                  linking={linking}
-                  fallback={<Text>Loading...</Text>}
-                  documentTitle={{
-                    formatter: (options, route) =>
-                      `My Budget App${route?.name ? ` - ${route.name}` : ''}`,
-                  }}
-                >
+                <NavigationContainer>
                   <RootNavigation />
                 </NavigationContainer>
               </TransactionsProvider>

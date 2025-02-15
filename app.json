@@ -22,13 +22,7 @@
     },
     "web": {
       "favicon": "./assets/icon.png",
-      "bundler": "webpack",
-      "publicPath": "/MyBudgetApp",
-      "build": {
-        "babel": {
-          "include": ["@expo/vector-icons"]
-        }
-      }
+      "bundler": "webpack"
     },
     "scheme": "mybudgetapp"
   }
