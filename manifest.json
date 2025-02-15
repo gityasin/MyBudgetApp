@@ -1,0 +1,9 @@
+{
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "lang": "en",
+  "name": "My Budget App",
+  "short_name": "My Budget App",
+  "start_url": "/?utm_source=web_app_manifest",
+  "orientation": "portrait"
+}
