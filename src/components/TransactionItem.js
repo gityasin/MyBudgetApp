@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Surface, Text, List, useTheme, TouchableRipple, Menu, IconButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTransactions } from '../context/TransactionsContext';
 import { useNavigation } from '@react-navigation/native';
+import { formatCurrency } from '../services/format';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CATEGORY_ICONS = {
   Food: 'food',
@@ -19,7 +21,23 @@ export default function TransactionItem({ transaction, onPress }) {
   const { colors } = theme;
   const { dispatch } = useTransactions();
   const [menuVisible, setMenuVisible] = useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const navigation = useNavigation();
+
+  useEffect(() => {
+    loadSelectedCurrency();
+  }, []);
+
+  const loadSelectedCurrency = async () => {
+    try {
+      const currency = await AsyncStorage.getItem('selectedCurrency');
+      if (currency) {
+        setSelectedCurrency(currency);
+      }
+    } catch (error) {
+      console.warn('Error loading currency preference:', error);
+    }
+  };
 
   const isExpense = transaction.amount < 0;
   const amount = Math.abs(transaction.amount);
@@ -57,7 +75,7 @@ export default function TransactionItem({ transaction, onPress }) {
         onPress={onPress}
         style={styles.touchable}
         accessibilityRole="button"
-        accessibilityLabel={`${transaction.description} transaction of ${isExpense ? 'expense' : 'income'} $${amount.toFixed(2)}`}
+        accessibilityLabel={`${transaction.description} transaction of ${isExpense ? 'expense' : 'income'} ${formatCurrency(amount, selectedCurrency)}`}
       >
         <List.Item
           title={transaction.description}
@@ -79,7 +97,7 @@ export default function TransactionItem({ transaction, onPress }) {
                   { color: isExpense ? colors.error : colors.success }
                 ]}
               >
-                {isExpense ? '-' : '+'}${amount.toFixed(2)}
+                {isExpense ? '-' : '+'}{formatCurrency(amount, selectedCurrency)}
               </Text>
               <Menu
                 visible={menuVisible}

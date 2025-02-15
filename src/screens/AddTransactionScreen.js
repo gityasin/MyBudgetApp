@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Animated } from 'react-native';
-import { TextInput, Button, Switch, Text, HelperText, useTheme } from 'react-native-paper';
+import { TextInput, Button, Switch, Text, HelperText, useTheme, SegmentedButtons } from 'react-native-paper';
 import { useTransactions } from '../context/TransactionsContext';
+import { getCurrencySymbol } from '../services/format';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Other'];
 
@@ -59,6 +61,7 @@ export default function AddTransactionScreen({ navigation, route }) {
   console.log('Theme loaded:', !!theme);
   
   const { colors } = theme;
+  const [selectedCurrency, setSelectedCurrency] = useState('USD');
 
   console.log('AddTransactionScreen mounted with route params:', route.params);
 
@@ -73,6 +76,7 @@ export default function AddTransactionScreen({ navigation, route }) {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
+  const [transactionType, setTransactionType] = useState('expense');
   const [errors, setErrors] = useState({});
   const [showSnackbar, setShowSnackbar] = useState(false);
 
@@ -81,11 +85,24 @@ export default function AddTransactionScreen({ navigation, route }) {
     if (isEditing && existingTransaction) {
       console.log('Existing transaction ID:', existingTransaction.id);
       setDescription(existingTransaction.description || '');
-      setAmount(existingTransaction.amount ? existingTransaction.amount.toString() : '');
+      setAmount(existingTransaction.amount ? Math.abs(existingTransaction.amount).toString() : '');
       setCategory(existingTransaction.category || '');
       setIsRecurring(Boolean(existingTransaction.isRecurring));
+      setTransactionType(existingTransaction.amount < 0 ? 'expense' : 'income');
     }
+    loadSelectedCurrency();
   }, [isEditing, existingTransaction]);
+
+  const loadSelectedCurrency = async () => {
+    try {
+      const currency = await AsyncStorage.getItem('selectedCurrency');
+      if (currency) {
+        setSelectedCurrency(currency);
+      }
+    } catch (error) {
+      console.warn('Error loading currency preference:', error);
+    }
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -111,12 +128,16 @@ export default function AddTransactionScreen({ navigation, route }) {
   const handleSubmit = () => {
     if (!validateForm()) return;
 
+    const parsedAmount = parseFloat(amount);
+    const finalAmount = transactionType === 'expense' ? -parsedAmount : parsedAmount;
+
     const transactionData = {
       description: description.trim(),
-      amount: parseFloat(amount),
+      amount: finalAmount,
       date: new Date().toISOString().split('T')[0],
       category: category.trim(),
       isRecurring,
+      type: transactionType,
     };
 
     if (isEditing) {
@@ -153,6 +174,16 @@ export default function AddTransactionScreen({ navigation, route }) {
             {isEditing ? 'Edit Transaction' : 'Add Transaction'}
           </Text>
 
+          <SegmentedButtons
+            value={transactionType}
+            onValueChange={setTransactionType}
+            buttons={[
+              { value: 'expense', label: 'Expense' },
+              { value: 'income', label: 'Income' },
+            ]}
+            style={styles.segmentedButtons}
+          />
+
           <TextInput
             mode="outlined"
             label="Description"
@@ -180,7 +211,7 @@ export default function AddTransactionScreen({ navigation, route }) {
             keyboardType="decimal-pad"
             error={!!errors.amount}
             style={styles.input}
-            left={<TextInput.Affix text="$" />}
+            left={<TextInput.Affix text={getCurrencySymbol(selectedCurrency)} />}
             accessibilityLabel="Transaction amount input"
           />
           <HelperText type="error" visible={!!errors.amount}>
@@ -244,14 +275,33 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   input: {
-    marginBottom: 4,
+    marginBottom: 8,
   },
   switchContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginVertical: 16,
-    paddingHorizontal: 8,
+  },
+  switchLabel: {
+    marginLeft: 8,
+  },
+  snackbar: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    right: 16,
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+    padding: 16,
+    elevation: 4,
+  },
+  snackbarText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  segmentedButtons: {
+    marginBottom: 16,
   },
   button: {
     marginTop: 16,
@@ -260,29 +310,5 @@ const styles = StyleSheet.create({
   buttonLabel: {
     fontSize: 16,
     fontWeight: '600',
-  },
-  snackbar: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    backgroundColor: '#323232',
-    padding: 16,
-    borderRadius: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.27,
-    shadowRadius: 4.65,
-  },
-  snackbarText: {
-    color: '#fff',
-    fontSize: 14,
   },
 });

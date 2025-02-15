@@ -14,20 +14,21 @@ export default function ChartScreen() {
   const theme = useTheme();
   const [chartType, setChartType] = useState('donut');
 
-  // Calculate category totals and percentages
-  const categorySums = state.transactions.reduce((acc, tx) => {
-    const cat = tx.category || 'Uncategorized';
-    acc[cat] = (acc[cat] || 0) + tx.amount;
-    return acc;
-  }, {});
+  // Calculate category totals and percentages for expenses only
+  const categorySums = state.transactions
+    .filter(tx => tx.amount < 0) // Only include expenses
+    .reduce((acc, tx) => {
+      const cat = tx.category || 'Uncategorized';
+      acc[cat] = (acc[cat] || 0) + Math.abs(tx.amount); // Use absolute value for display
+      return acc;
+    }, {});
 
   const total = Object.values(categorySums).reduce((sum, amount) => sum + amount, 0);
 
   const chartData = Object.entries(categorySums).map(([category, amount]) => ({
     x: category,
     y: amount,
-    percentage: ((amount / total) * 100).toFixed(1),
-    label: `${category}\n$${amount.toFixed(2)}\n${((amount / total) * 100).toFixed(1)}%`,
+    percentage: ((amount / total) * 100).toFixed(1)
   }));
 
   const colorScale = [
@@ -45,10 +46,10 @@ export default function ChartScreen() {
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <Text variant="headlineMedium" style={styles.noDataText}>
-          No transaction data available
+          No expense data available
         </Text>
         <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
-          Add some transactions to see your spending breakdown
+          Add some expenses to see your spending breakdown
         </Text>
       </View>
     );
@@ -60,10 +61,14 @@ export default function ChartScreen() {
       contentContainerStyle={styles.contentContainer}
     >
       <Text variant="headlineMedium" style={[styles.title, { color: theme.colors.primary }]}>
-        Spending Breakdown
+        Expense Breakdown
       </Text>
       
       <Surface style={styles.chartContainer} elevation={2}>
+        <Text variant="titleLarge" style={[styles.totalAmount, { color: theme.colors.error }]}>
+          Total Spent: ${total.toFixed(2)}
+        </Text>
+
         <SegmentedButtons
           value={chartType}
           onValueChange={setChartType}
@@ -82,33 +87,32 @@ export default function ChartScreen() {
           }}
           height={350}
           width={Dimensions.get('window').width - 32}
+          labels={() => ''}
+          labelComponent={<VictoryLabel text={''} />}
           style={{
-            labels: {
-              fill: theme.colors.text,
-              fontSize: 12,
+            data: {
+              stroke: theme.colors.background,
+              strokeWidth: 1,
             },
+            labels: { display: 'none' }
           }}
-          labelComponent={
-            <VictoryLabel
-              style={{ fill: theme.colors.text }}
-              renderInPortal={false}
-            />
-          }
         />
 
-        <VictoryLegend
-          x={50}
-          y={0}
-          orientation="horizontal"
-          gutter={20}
-          style={{
-            labels: { fill: theme.colors.text }
-          }}
-          data={chartData.map((d, i) => ({
-            name: `${d.x} (${d.percentage}%)`,
-            symbol: { fill: colorScale[i % colorScale.length] }
-          }))}
-        />
+        <View style={styles.legendContainer}>
+          <VictoryLegend
+            x={50}
+            y={20}
+            orientation="horizontal"
+            gutter={20}
+            style={{
+              labels: { fill: theme.colors.text }
+            }}
+            data={chartData.map((d, i) => ({
+              name: `${d.x}: $${d.y.toFixed(2)} (${d.percentage}%)`,
+              symbol: { fill: colorScale[i % colorScale.length] }
+            }))}
+          />
+        </View>
       </Surface>
 
       <Surface style={styles.summaryContainer} elevation={2}>
@@ -190,5 +194,14 @@ const styles = StyleSheet.create({
   noDataText: {
     textAlign: 'center',
     marginBottom: 8,
+  },
+  totalAmount: {
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  legendContainer: {
+    marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
   },
 });

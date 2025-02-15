@@ -19,7 +19,7 @@ function HomeStack() {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: colors.surface,
+          backgroundColor: colors.background,
           elevation: 0,
           shadowOpacity: 0,
         },
@@ -42,7 +42,7 @@ function HomeStack() {
         options={({ route }) => ({
           title: route.params?.isEditing ? 'Edit Transaction' : 'Add Transaction',
           headerStyle: {
-            backgroundColor: colors.surface,
+            backgroundColor: colors.background,
             elevation: 0,
             shadowOpacity: 0,
           },
@@ -57,6 +57,15 @@ export default function RootNavigation() {
 
   const screenOptions = {
     headerShown: true,
+    headerStyle: {
+      backgroundColor: colors.background,
+      elevation: 0,
+      shadowOpacity: 0,
+    },
+    headerTintColor: colors.text,
+    headerTitleStyle: {
+      fontWeight: '600',
+    },
     tabBarStyle: {
       backgroundColor: colors.surface,
       borderTopColor: colors.border,
