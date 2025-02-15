@@ -22,9 +22,7 @@
     },
     "web": {
       "favicon": "./assets/icon.png",
-      "bundler": "metro",
-      "output": "single",
-      "publicPath": "/MyBudgetApp"
+      "bundler": "webpack"
     }
   }
 }

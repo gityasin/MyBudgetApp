@@ -9,8 +9,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "predeploy": "expo export -p web",
-    "deploy": "gh-pages -d dist"
+    "build": "expo export:web",
+    "predeploy": "npm run build && copy 404.html web-build\\",
+    "deploy": "gh-pages -d web-build"
   },
   "dependencies": {
     "@expo/metro-runtime": "^4.0.1",
@@ -43,6 +44,7 @@
     "@babel/plugin-transform-object-rest-spread": "^7.23.4",
     "@babel/plugin-transform-optional-catch-binding": "^7.23.4",
     "@babel/plugin-transform-optional-chaining": "^7.23.4",
+    "@expo/webpack-config": "^19.0.1",
     "@testing-library/react-native": "^12.4.3",
     "@types/jest": "^29.5.11",
     "babel-jest": "^29.7.0",
