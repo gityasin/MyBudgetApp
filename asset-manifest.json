@@ -1,8 +1,8 @@
 {
   "files": {
     "main.js": "/MyBudgetApp/static/js/main.4cb10701.js",
-    "static/js/419.5d8f9d98.js": "/MyBudgetApp/static/js/419.5d8f9d98.js",
-    "fonts/MaterialCommunityIcons.ttf": "/MyBudgetApp/fonts/MaterialCommunityIcons.ttf",
+    "static/js/419.2dfc23a2.js": "/MyBudgetApp/static/js/419.2dfc23a2.js",
+    "static/media/MaterialCommunityIcons.ttf": "/MyBudgetApp/static/media/MaterialCommunityIcons.5d42b4e60858731e7b65.ttf",
     "favicon.ico": "/MyBudgetApp/favicon.ico",
     "index.html": "/MyBudgetApp/index.html",
     "favicon-32.png": "/MyBudgetApp/favicon-32.png",
@@ -10,10 +10,10 @@
     "manifest.json": "/MyBudgetApp/manifest.json",
     "serve.json": "/MyBudgetApp/serve.json",
     "main.4cb10701.js.map": "/MyBudgetApp/static/js/main.4cb10701.js.map",
-    "419.5d8f9d98.js.map": "/MyBudgetApp/static/js/419.5d8f9d98.js.map"
+    "419.2dfc23a2.js.map": "/MyBudgetApp/static/js/419.2dfc23a2.js.map"
   },
   "entrypoints": [
-    "static/js/419.5d8f9d98.js",
+    "static/js/419.2dfc23a2.js",
     "static/js/main.4cb10701.js"
   ]
 }
