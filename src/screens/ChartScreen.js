@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Dimensions, ScrollView } from 'react-native';
+import { View, StyleSheet, Dimensions, ScrollView, Platform } from 'react-native';
 import { VictoryPie, VictoryLabel, VictoryLegend, VictoryAnimation } from 'victory-native';
 import { Text, Surface, useTheme, SegmentedButtons } from 'react-native-paper';
 import { useTransactions } from '../context/TransactionsContext';
@@ -85,14 +85,14 @@ export default function ChartScreen() {
         <VictoryPie
           data={chartData}
           colorScale={colorScale}
-          innerRadius={chartType === 'donut' ? 100 : 0}
+          innerRadius={chartType === 'donut' ? 80 : 0}
           padAngle={2}
           animate={{
             duration: 1000,
             onLoad: { duration: 500 }
           }}
-          height={350}
-          width={Dimensions.get('window').width - 32}
+          height={300}
+          width={Math.min(350, Dimensions.get('window').width - 40)}
           labels={() => ''}
           labelComponent={<VictoryLabel text={''} />}
           style={{
@@ -106,12 +106,21 @@ export default function ChartScreen() {
 
         <View style={styles.legendContainer}>
           <VictoryLegend
-            x={50}
-            y={20}
+            x={10}
+            y={0}
             orientation="horizontal"
             gutter={20}
+            rowGutter={10}
+            itemsPerRow={2}
+            centerTitle
             style={{
-              labels: { fill: theme.colors.text }
+              labels: { 
+                fill: theme.colors.text,
+                fontSize: 12,
+              },
+              parent: {
+                width: '100%',
+              }
             }}
             data={chartData.map((d, i) => ({
               name: `${d.x}: ${formatCurrency(d.y, selectedCurrency)} (${d.percentage}%)`,
@@ -158,6 +167,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
+    flexGrow: 1,
   },
   title: {
     textAlign: 'center',
@@ -168,29 +178,37 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
     alignItems: 'center',
+    width: '100%',
   },
   segmentedButtons: {
     marginBottom: 16,
+    width: '100%',
   },
   summaryContainer: {
     padding: 16,
     borderRadius: 8,
+    width: '100%',
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 8,
+    flexWrap: 'wrap',
   },
   categoryInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    minWidth: 150,
+    marginRight: 8,
   },
   colorIndicator: {
     width: 12,
     height: 12,
     borderRadius: 6,
     marginRight: 8,
+    flexShrink: 0,
   },
   totalRow: {
     borderTopWidth: 1,
@@ -208,6 +226,7 @@ const styles = StyleSheet.create({
   legendContainer: {
     marginTop: 20,
     width: '100%',
-    alignItems: 'center',
+    paddingHorizontal: 10,
+    alignItems: 'flex-start',
   },
 });
