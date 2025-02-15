@@ -1,45 +1,32 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { List, Switch, Divider, Text, Surface, useTheme, Button } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Modal as RNModal } from 'react-native';
+import { List, Switch, Divider, Text, Surface, useTheme, Button, TextInput, IconButton } from 'react-native-paper';
 import { scheduleDailyReminder } from '../notifications/NotificationsService';
 import { useAppTheme } from '../../theme';
 import { getAvailableCurrencies } from '../services/format';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTransactions } from '../context/TransactionsContext';
+import { useCategories } from '../context/CategoriesContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function SettingsScreen() {
   const theme = useTheme();
   const { colors } = theme;
   const { isDarkMode, toggleTheme } = useAppTheme();
+  const { language, changeLanguage, t } = useLanguage();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [showCurrencySelector, setShowCurrencySelector] = useState(false);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
   const currencies = getAvailableCurrencies();
-
-  // Load saved currency on component mount
-  React.useEffect(() => {
-    loadSavedCurrency();
-  }, []);
-
-  const loadSavedCurrency = async () => {
-    try {
-      const savedCurrency = await AsyncStorage.getItem('selectedCurrency');
-      if (savedCurrency) {
-        setSelectedCurrency(savedCurrency);
-      }
-    } catch (error) {
-      console.warn('Error loading saved currency:', error);
-    }
-  };
-
-  const handleCurrencyChange = async (currencyCode) => {
-    setSelectedCurrency(currencyCode);
-    try {
-      await AsyncStorage.setItem('selectedCurrency', currencyCode);
-    } catch (error) {
-      console.warn('Error saving currency preference:', error);
-    }
-    setShowCurrencySelector(false);
-  };
+  const { selectedCurrency, handleCurrencyChange } = useTransactions();
+  const { categories, addCategory, removeCategory, updateCategory } = useCategories();
+  
+  // Category management state
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [showEditCategory, setShowEditCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [editedCategory, setEditedCategory] = useState('');
 
   const handleNotificationToggle = async () => {
     if (!notificationsEnabled) {
@@ -48,21 +35,101 @@ export default function SettingsScreen() {
     setNotificationsEnabled(!notificationsEnabled);
   };
 
+  const handleCurrencySelect = async (currencyCode) => {
+    await handleCurrencyChange(currencyCode);
+    setShowCurrencySelector(false);
+  };
+
   const selectedCurrencyDetails = currencies.find(c => c.code === selectedCurrency);
 
-  const renderCurrencySelector = () => {
-    if (!showCurrencySelector) return null;
+  const handleAddCategory = () => {
+    if (newCategory.trim()) {
+      addCategory(newCategory.trim());
+      setNewCategory('');
+      setShowAddCategory(false);
+    }
+  };
 
+  const handleEditCategory = () => {
+    if (editedCategory.trim() && selectedCategory) {
+      updateCategory(selectedCategory, editedCategory.trim());
+      setEditedCategory('');
+      setSelectedCategory(null);
+      setShowEditCategory(false);
+    }
+  };
+
+  const handleDeleteCategory = (category) => {
+    removeCategory(category);
+  };
+
+  const renderDialog = (visible, title, content, onDismiss) => {
     return (
-      <Surface style={[styles.currencySelector, { backgroundColor: colors.surface }]} elevation={5}>
-        <View style={styles.currencySelectorHeader}>
-          <Text variant="titleLarge" style={[styles.currencySelectorTitle, { color: colors.text }]}>
-            Select Currency
-          </Text>
-          <TouchableOpacity onPress={() => setShowCurrencySelector(false)}>
-            <Text style={[styles.closeButton, { color: colors.primary }]}>Close</Text>
-          </TouchableOpacity>
+      <RNModal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={onDismiss}
+      >
+        <View style={styles.modalOverlay}>
+          <Surface style={[styles.dialogContainer, { backgroundColor: colors.surface }]} elevation={5}>
+            <Text variant="titleLarge" style={[styles.dialogTitle, { color: colors.text }]}>
+              {title}
+            </Text>
+            {content}
+          </Surface>
         </View>
+      </RNModal>
+    );
+  };
+
+  const renderAddCategoryDialog = () => {
+    return renderDialog(
+      showAddCategory,
+      t('addNewCategory'),
+      <View>
+        <TextInput
+          label={t('categoryName')}
+          value={newCategory}
+          onChangeText={setNewCategory}
+          mode="outlined"
+          style={styles.dialogInput}
+        />
+        <View style={styles.dialogActions}>
+          <Button onPress={() => setShowAddCategory(false)}>{t('cancel')}</Button>
+          <Button onPress={handleAddCategory}>{t('add')}</Button>
+        </View>
+      </View>,
+      () => setShowAddCategory(false)
+    );
+  };
+
+  const renderEditCategoryDialog = () => {
+    return renderDialog(
+      showEditCategory,
+      t('editCategory'),
+      <View>
+        <TextInput
+          label={t('categoryName')}
+          value={editedCategory}
+          onChangeText={setEditedCategory}
+          mode="outlined"
+          style={styles.dialogInput}
+        />
+        <View style={styles.dialogActions}>
+          <Button onPress={() => setShowEditCategory(false)}>{t('cancel')}</Button>
+          <Button onPress={handleEditCategory}>{t('update')}</Button>
+        </View>
+      </View>,
+      () => setShowEditCategory(false)
+    );
+  };
+
+  const renderCurrencySelector = () => {
+    return renderDialog(
+      showCurrencySelector,
+      'Select Currency',
+      <View>
         <ScrollView style={styles.currencyList}>
           {currencies.map((currency) => (
             <TouchableOpacity
@@ -71,7 +138,7 @@ export default function SettingsScreen() {
                 styles.currencyItem,
                 selectedCurrency === currency.code && { backgroundColor: colors.primaryContainer }
               ]}
-              onPress={() => handleCurrencyChange(currency.code)}
+              onPress={() => handleCurrencySelect(currency.code)}
             >
               <Text style={[styles.currencyLabel, { color: colors.text }]}>
                 {currency.label}
@@ -82,7 +149,57 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           ))}
         </ScrollView>
-      </Surface>
+        <Button 
+          onPress={() => setShowCurrencySelector(false)}
+          style={styles.dialogCloseButton}
+        >
+          Close
+        </Button>
+      </View>,
+      () => setShowCurrencySelector(false)
+    );
+  };
+
+  const renderLanguageSelector = () => {
+    const languages = [
+      { code: 'en', label: 'English' },
+      { code: 'tr', label: 'Türkçe' }
+    ];
+
+    return renderDialog(
+      showLanguageSelector,
+      t('language'),
+      <View>
+        <ScrollView style={styles.languageList}>
+          {languages.map((lang) => (
+            <TouchableOpacity
+              key={lang.code}
+              style={[
+                styles.languageItem,
+                language === lang.code && { backgroundColor: colors.primaryContainer }
+              ]}
+              onPress={() => {
+                changeLanguage(lang.code);
+                setShowLanguageSelector(false);
+              }}
+            >
+              <Text style={[styles.languageLabel, { color: colors.text }]}>
+                {lang.label}
+              </Text>
+              {language === lang.code && (
+                <List.Icon icon="check" color={colors.primary} />
+              )}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        <Button 
+          onPress={() => setShowLanguageSelector(false)}
+          style={styles.dialogCloseButton}
+        >
+          {t('close')}
+        </Button>
+      </View>,
+      () => setShowLanguageSelector(false)
     );
   };
 
@@ -91,13 +208,13 @@ export default function SettingsScreen() {
       <ScrollView style={styles.container}>
         <Surface style={[styles.surface, { backgroundColor: colors.surface }]} elevation={1}>
           <Text variant="titleLarge" style={[styles.sectionTitle, { color: colors.text }]}>
-            App Settings
+            {t('appSettings')}
           </Text>
           
           <List.Section>
             <List.Item
-              title="Dark Mode"
-              description="Toggle dark/light theme"
+              title={t('darkMode')}
+              description={t('darkModeDesc')}
               left={props => <List.Icon {...props} icon="theme-light-dark" />}
               right={() => (
                 <Switch
@@ -110,8 +227,8 @@ export default function SettingsScreen() {
             <Divider />
             
             <List.Item
-              title="Daily Reminders"
-              description="Get notified to add transactions"
+              title={t('dailyReminders')}
+              description={t('dailyRemindersDesc')}
               left={props => <List.Icon {...props} icon="bell" />}
               right={() => (
                 <Switch
@@ -124,45 +241,98 @@ export default function SettingsScreen() {
             <Divider />
             
             <List.Item
-              title="Currency Format"
-              description={`Current: ${selectedCurrencyDetails?.label || 'USD ($)'}`}
+              title={t('currencyFormat')}
+              description={`${t('currentCurrency')}${selectedCurrencyDetails?.label || 'USD ($)'}`}
               left={props => <List.Icon {...props} icon="currency-usd" />}
               onPress={() => setShowCurrencySelector(true)}
             />
+            <Divider />
+
+            <List.Item
+              title={t('language')}
+              description={t('languageDesc')}
+              left={props => <List.Icon {...props} icon="translate" />}
+              onPress={() => setShowLanguageSelector(true)}
+            />
+          </List.Section>
+
+          <Divider style={styles.divider} />
+
+          <List.Section>
+            <Text variant="titleMedium" style={[styles.sectionTitle, { color: colors.text }]}>
+              {t('categories')}
+            </Text>
+            
+            {categories.map((category) => (
+              <List.Item
+                key={category}
+                title={category}
+                right={props => (
+                  <View style={styles.categoryActions}>
+                    <IconButton
+                      icon="pencil"
+                      size={20}
+                      onPress={() => {
+                        setSelectedCategory(category);
+                        setEditedCategory(category);
+                        setShowEditCategory(true);
+                      }}
+                    />
+                    <IconButton
+                      icon="delete"
+                      size={20}
+                      onPress={() => handleDeleteCategory(category)}
+                    />
+                  </View>
+                )}
+              />
+            ))}
+            
+            <Button
+              mode="outlined"
+              onPress={() => setShowAddCategory(true)}
+              style={styles.addButton}
+            >
+              {t('addNewCategory')}
+            </Button>
           </List.Section>
         </Surface>
 
         <Surface style={[styles.surface, styles.aboutSection, { backgroundColor: colors.surface }]} elevation={1}>
           <Text variant="titleLarge" style={[styles.sectionTitle, { color: colors.text }]}>
-            About
+            {t('about')}
           </Text>
           
           <List.Section>
             <List.Item
-              title="Version"
+              title={t('version')}
               description="1.0.0"
               left={props => <List.Icon {...props} icon="information" />}
             />
             <Divider />
             
             <List.Item
-              title="Help & Support"
-              description="Get assistance with the app"
+              title={t('helpAndSupport')}
+              description={t('helpDesc')}
               left={props => <List.Icon {...props} icon="help-circle" />}
               onPress={() => {/* TODO: Implement help section */}}
             />
             <Divider />
             
             <List.Item
-              title="Privacy Policy"
-              description="Read our privacy policy"
+              title={t('privacyPolicy')}
+              description={t('privacyPolicyDesc')}
               left={props => <List.Icon {...props} icon="shield-account" />}
               onPress={() => {/* TODO: Implement privacy policy */}}
             />
           </List.Section>
         </Surface>
       </ScrollView>
+
       {renderCurrencySelector()}
+      {renderLanguageSelector()}
+      {renderAddCategoryDialog()}
+      {renderEditCategoryDialog()}
     </View>
   );
 }
@@ -221,6 +391,58 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   currencyLabel: {
+    fontSize: 16,
+  },
+  divider: {
+    marginVertical: 16,
+  },
+  categoryActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addButton: {
+    marginTop: 16,
+    marginHorizontal: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dialogContainer: {
+    width: '90%',
+    maxWidth: 400,
+    borderRadius: 8,
+    padding: 16,
+  },
+  dialogTitle: {
+    marginBottom: 16,
+    fontWeight: '600',
+  },
+  dialogInput: {
+    marginBottom: 16,
+  },
+  dialogActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  dialogCloseButton: {
+    marginTop: 16,
+  },
+  languageList: {
+    maxHeight: 200,
+  },
+  languageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  languageLabel: {
     fontSize: 16,
   },
 });

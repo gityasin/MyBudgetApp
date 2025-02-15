@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Animated } from 'react-native';
-import { TextInput, Button, Switch, Text, HelperText, useTheme, SegmentedButtons } from 'react-native-paper';
+import { TextInput, Button, Switch, Text, HelperText, useTheme, SegmentedButtons, Menu } from 'react-native-paper';
 import { useTransactions } from '../context/TransactionsContext';
+import { useCategories } from '../context/CategoriesContext';
 import { getCurrencySymbol } from '../services/format';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Other'];
+import { useLanguage } from '../context/LanguageContext';
 
 const CustomSnackbar = ({ visible, message, style }) => {
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -55,12 +55,14 @@ export default function AddTransactionScreen({ navigation, route }) {
   console.log('Route prop:', route);
   
   const { dispatch } = useTransactions();
+  const { categories, addCategory } = useCategories();
   console.log('TransactionsContext dispatch available:', !!dispatch);
   
   const theme = useTheme();
   console.log('Theme loaded:', !!theme);
   
   const { colors } = theme;
+  const { t } = useLanguage();
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
 
   console.log('AddTransactionScreen mounted with route params:', route.params);
@@ -79,6 +81,7 @@ export default function AddTransactionScreen({ navigation, route }) {
   const [transactionType, setTransactionType] = useState('expense');
   const [errors, setErrors] = useState({});
   const [showSnackbar, setShowSnackbar] = useState(false);
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
 
   useEffect(() => {
     console.log('Setting form values. IsEditing:', isEditing, 'Transaction:', existingTransaction);
@@ -108,34 +111,40 @@ export default function AddTransactionScreen({ navigation, route }) {
     const newErrors = {};
 
     if (!description.trim()) {
-      newErrors.description = 'Description is required';
+      newErrors.description = t('descriptionRequired');
     }
 
     if (!amount) {
-      newErrors.amount = 'Amount is required';
+      newErrors.amount = t('amountRequired');
     } else if (isNaN(amount) || parseFloat(amount) <= 0) {
-      newErrors.amount = 'Please enter a valid positive amount';
+      newErrors.amount = t('invalidAmount');
     }
 
     if (!category.trim()) {
-      newErrors.category = 'Category is required';
+      newErrors.category = t('categoryRequired');
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) return;
 
     const parsedAmount = parseFloat(amount);
     const finalAmount = transactionType === 'expense' ? -parsedAmount : parsedAmount;
+    const trimmedCategory = category.trim();
+
+    // If the category is new (not in the existing categories), add it
+    if (trimmedCategory && !categories.includes(trimmedCategory)) {
+      await addCategory(trimmedCategory);
+    }
 
     const transactionData = {
       description: description.trim(),
       amount: finalAmount,
       date: new Date().toISOString().split('T')[0],
-      category: category.trim(),
+      category: trimmedCategory,
       isRecurring,
       type: transactionType,
     };
@@ -171,22 +180,22 @@ export default function AddTransactionScreen({ navigation, route }) {
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.content}>
           <Text variant="headlineMedium" style={[styles.title, { color: colors.primary }]}>
-            {isEditing ? 'Edit Transaction' : 'Add Transaction'}
+            {isEditing ? t('editTransaction') : t('addTransaction')}
           </Text>
 
           <SegmentedButtons
             value={transactionType}
             onValueChange={setTransactionType}
             buttons={[
-              { value: 'expense', label: 'Expense' },
-              { value: 'income', label: 'Income' },
+              { value: 'expense', label: t('expense') },
+              { value: 'income', label: t('income') },
             ]}
             style={styles.segmentedButtons}
           />
 
           <TextInput
             mode="outlined"
-            label="Description"
+            label={t('description')}
             value={description}
             onChangeText={(text) => {
               setDescription(text);
@@ -202,7 +211,7 @@ export default function AddTransactionScreen({ navigation, route }) {
 
           <TextInput
             mode="outlined"
-            label="Amount"
+            label={t('amount')}
             value={amount}
             onChangeText={(text) => {
               setAmount(text);
@@ -218,24 +227,51 @@ export default function AddTransactionScreen({ navigation, route }) {
             {errors.amount}
           </HelperText>
 
-          <TextInput
-            mode="outlined"
-            label="Category"
-            value={category}
-            onChangeText={(text) => {
-              setCategory(text);
-              setErrors({ ...errors, category: '' });
-            }}
-            error={!!errors.category}
-            style={styles.input}
-            accessibilityLabel="Transaction category input"
-          />
-          <HelperText type="info" visible={true}>
-            Suggested: {CATEGORIES.join(', ')}
+          <View style={styles.categoryInputContainer}>
+            <Menu
+              visible={showCategoryMenu}
+              onDismiss={() => setShowCategoryMenu(false)}
+              anchor={
+                <TextInput
+                  mode="outlined"
+                  label={t('category')}
+                  value={category}
+                  onChangeText={(text) => {
+                    setCategory(text);
+                    setErrors({ ...errors, category: '' });
+                  }}
+                  error={!!errors.category}
+                  style={[styles.input, { flex: 1 }]}
+                  right={
+                    <TextInput.Icon 
+                      icon="menu-down" 
+                      onPress={() => setShowCategoryMenu(true)}
+                    />
+                  }
+                  onPressIn={() => setShowCategoryMenu(true)}
+                  accessibilityLabel="Transaction category input"
+                />
+              }
+            >
+              {categories.map((cat) => (
+                <Menu.Item
+                  key={cat}
+                  onPress={() => {
+                    setCategory(cat);
+                    setShowCategoryMenu(false);
+                    setErrors({ ...errors, category: '' });
+                  }}
+                  title={cat}
+                />
+              ))}
+            </Menu>
+          </View>
+          <HelperText type="error" visible={!!errors.category}>
+            {errors.category}
           </HelperText>
 
           <View style={styles.switchContainer}>
-            <Text variant="bodyLarge">Recurring Monthly?</Text>
+            <Text variant="bodyLarge">{t('recurringMonthly')}</Text>
             <Switch
               value={isRecurring}
               onValueChange={setIsRecurring}
@@ -250,13 +286,13 @@ export default function AddTransactionScreen({ navigation, route }) {
             labelStyle={styles.buttonLabel}
             accessibilityLabel={isEditing ? "Update transaction button" : "Add transaction button"}
           >
-            {isEditing ? 'Update Transaction' : 'Add Transaction'}
+            {isEditing ? t('update') : t('add')}
           </Button>
         </View>
       </ScrollView>
       <CustomSnackbar
         visible={showSnackbar}
-        message={isEditing ? 'Transaction updated successfully!' : 'Transaction added successfully!'}
+        message={isEditing ? t('transactionUpdated') : t('transactionAdded')}
         style={{ backgroundColor: colors.success }}
       />
     </>
@@ -310,5 +346,9 @@ const styles = StyleSheet.create({
   buttonLabel: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  categoryInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });

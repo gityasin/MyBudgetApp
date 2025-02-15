@@ -3,11 +3,15 @@ import { View, StyleSheet, FlatList } from 'react-native';
 import { Text, FAB, Surface, useTheme, Divider } from 'react-native-paper';
 import { useTransactions } from '../context/TransactionsContext';
 import TransactionItem from '../components/TransactionItem';
+import { formatCurrency } from '../services/format';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function HomeScreen({ navigation }) {
-  const { state } = useTransactions();
+  const { state, selectedCurrency } = useTransactions();
   const theme = useTheme();
+  const { t } = useLanguage();
 
+  // Calculate totals in the selected currency
   const total = state.transactions.reduce((acc, tx) => acc + tx.amount, 0);
   const income = state.transactions
     .filter(tx => tx.amount > 0)
@@ -20,16 +24,16 @@ export default function HomeScreen({ navigation }) {
     <>
       <Surface style={styles.summaryContainer} elevation={2}>
         <Text variant="headlineMedium" style={styles.title}>
-          My Budget
+          {t('myBudget')}
         </Text>
         
         <View style={styles.balanceRow}>
-          <Text variant="titleLarge">Total Balance</Text>
+          <Text variant="titleLarge">{t('totalBalance')}</Text>
           <Text 
             variant="headlineMedium"
             style={{ color: total >= 0 ? theme.colors.success : theme.colors.error }}
           >
-            ${total.toFixed(2)}
+            {formatCurrency(total, selectedCurrency)}
           </Text>
         </View>
 
@@ -38,26 +42,26 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text variant="titleMedium" style={{ color: theme.colors.success }}>
-              Income
+              {t('income')}
             </Text>
             <Text variant="titleLarge" style={{ color: theme.colors.success }}>
-              +${income.toFixed(2)}
+              +{formatCurrency(income, selectedCurrency)}
             </Text>
           </View>
           
           <View style={styles.statItem}>
             <Text variant="titleMedium" style={{ color: theme.colors.error }}>
-              Expenses
+              {t('expense')}
             </Text>
             <Text variant="titleLarge" style={{ color: theme.colors.error }}>
-              ${expenses.toFixed(2)}
+              {formatCurrency(Math.abs(expenses), selectedCurrency)}
             </Text>
           </View>
         </View>
       </Surface>
 
       <Text variant="titleLarge" style={styles.sectionTitle}>
-        Recent Transactions
+        {t('recentTransactions')}
       </Text>
     </>
   );
@@ -65,10 +69,10 @@ export default function HomeScreen({ navigation }) {
   const renderEmptyList = () => (
     <View style={styles.emptyContainer}>
       <Text variant="bodyLarge" style={{ color: theme.colors.textSecondary }}>
-        No transactions yet
+        {t('noTransactions')}
       </Text>
       <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
-        Tap the + button to add your first transaction
+        {t('addFirstTransaction')}
       </Text>
     </View>
   );
@@ -82,8 +86,10 @@ export default function HomeScreen({ navigation }) {
           <TransactionItem 
             transaction={item}
             onPress={() => {
-              // TODO: Implement transaction details/edit screen
-              console.log('Transaction pressed:', item);
+              navigation.navigate('AddTransaction', {
+                isEditing: true,
+                transaction: item,
+              });
             }}
           />
         )}
@@ -95,13 +101,8 @@ export default function HomeScreen({ navigation }) {
       <FAB
         icon="plus"
         style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-        onPress={() => {
-          console.log('FAB pressed - Current navigation state:', navigation.getState());
-          console.log('Attempting to navigate to AddTransaction screen');
-          navigation.navigate('AddTransaction');
-          console.log('Navigation action completed');
-        }}
-        label="Add Transaction"
+        onPress={() => navigation.navigate('AddTransaction')}
+        label={t('addTransaction')}
       />
     </View>
   );

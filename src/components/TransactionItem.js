@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Surface, Text, List, useTheme, TouchableRipple, Menu, IconButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTransactions } from '../context/TransactionsContext';
 import { useNavigation } from '@react-navigation/native';
 import { formatCurrency } from '../services/format';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLanguage } from '../context/LanguageContext';
 
 const CATEGORY_ICONS = {
   Food: 'food',
@@ -19,25 +19,10 @@ const CATEGORY_ICONS = {
 export default function TransactionItem({ transaction, onPress }) {
   const theme = useTheme();
   const { colors } = theme;
-  const { dispatch } = useTransactions();
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const { dispatch, selectedCurrency } = useTransactions();
+  const [menuVisible, setMenuVisible] = React.useState(false);
   const navigation = useNavigation();
-
-  useEffect(() => {
-    loadSelectedCurrency();
-  }, []);
-
-  const loadSelectedCurrency = async () => {
-    try {
-      const currency = await AsyncStorage.getItem('selectedCurrency');
-      if (currency) {
-        setSelectedCurrency(currency);
-      }
-    } catch (error) {
-      console.warn('Error loading currency preference:', error);
-    }
-  };
+  const { t } = useLanguage();
 
   const isExpense = transaction.amount < 0;
   const amount = Math.abs(transaction.amount);
@@ -59,7 +44,6 @@ export default function TransactionItem({ transaction, onPress }) {
 
   const handleEdit = () => {
     setMenuVisible(false);
-    console.log('Editing transaction:', transaction); // Log the transaction here!
     navigation.navigate('AddTransaction', {
       isEditing: true,
       transaction: {
@@ -75,7 +59,7 @@ export default function TransactionItem({ transaction, onPress }) {
         onPress={onPress}
         style={styles.touchable}
         accessibilityRole="button"
-        accessibilityLabel={`${transaction.description} transaction of ${isExpense ? 'expense' : 'income'} ${formatCurrency(amount, selectedCurrency)}`}
+        accessibilityLabel={`${transaction.description} transaction of ${isExpense ? t('expense') : t('income')} ${formatCurrency(amount, selectedCurrency)}`}
       >
         <List.Item
           title={transaction.description}
@@ -112,12 +96,12 @@ export default function TransactionItem({ transaction, onPress }) {
               >
                 <Menu.Item
                   onPress={handleEdit}
-                  title="Edit"
+                  title={t('edit')}
                   leadingIcon="pencil"
                 />
                 <Menu.Item
                   onPress={handleDelete}
-                  title="Delete"
+                  title={t('delete')}
                   leadingIcon="delete"
                 />
               </Menu>

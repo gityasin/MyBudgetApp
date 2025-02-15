@@ -3,15 +3,18 @@ import { View, StyleSheet, Dimensions, ScrollView } from 'react-native';
 import { VictoryPie, VictoryLabel, VictoryLegend, VictoryAnimation } from 'victory-native';
 import { Text, Surface, useTheme, SegmentedButtons } from 'react-native-paper';
 import { useTransactions } from '../context/TransactionsContext';
+import { formatCurrency } from '../services/format';
+import { useLanguage } from '../context/LanguageContext';
 
 const CHART_TYPES = [
-  { value: 'pie', label: 'Pie Chart' },
-  { value: 'donut', label: 'Donut Chart' },
+  { value: 'pie', label: 'pieChart' },
+  { value: 'donut', label: 'donutChart' },
 ];
 
 export default function ChartScreen() {
-  const { state } = useTransactions();
+  const { state, selectedCurrency } = useTransactions();
   const theme = useTheme();
+  const { t } = useLanguage();
   const [chartType, setChartType] = useState('donut');
 
   // Calculate category totals and percentages for expenses only
@@ -37,7 +40,7 @@ export default function ChartScreen() {
     theme.colors.error,
     theme.colors.success,
     theme.colors.warning,
-    '#9333EA', // Additional colors for more categories
+    '#9333EA',
     '#2563EB',
     '#DC2626',
   ];
@@ -46,10 +49,10 @@ export default function ChartScreen() {
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <Text variant="headlineMedium" style={styles.noDataText}>
-          No expense data available
+          {t('noExpenseData')}
         </Text>
         <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
-          Add some expenses to see your spending breakdown
+          {t('addExpensesToSee')}
         </Text>
       </View>
     );
@@ -61,18 +64,21 @@ export default function ChartScreen() {
       contentContainerStyle={styles.contentContainer}
     >
       <Text variant="headlineMedium" style={[styles.title, { color: theme.colors.primary }]}>
-        Expense Breakdown
+        {t('expenseBreakdown')}
       </Text>
       
       <Surface style={styles.chartContainer} elevation={2}>
         <Text variant="titleLarge" style={[styles.totalAmount, { color: theme.colors.error }]}>
-          Total Spent: ${total.toFixed(2)}
+          {t('totalSpent')}: {formatCurrency(total, selectedCurrency)}
         </Text>
 
         <SegmentedButtons
           value={chartType}
           onValueChange={setChartType}
-          buttons={CHART_TYPES}
+          buttons={CHART_TYPES.map(type => ({
+            ...type,
+            label: t(type.label)
+          }))}
           style={styles.segmentedButtons}
         />
         
@@ -108,7 +114,7 @@ export default function ChartScreen() {
               labels: { fill: theme.colors.text }
             }}
             data={chartData.map((d, i) => ({
-              name: `${d.x}: $${d.y.toFixed(2)} (${d.percentage}%)`,
+              name: `${d.x}: ${formatCurrency(d.y, selectedCurrency)} (${d.percentage}%)`,
               symbol: { fill: colorScale[i % colorScale.length] }
             }))}
           />
@@ -117,7 +123,7 @@ export default function ChartScreen() {
 
       <Surface style={styles.summaryContainer} elevation={2}>
         <Text variant="titleMedium" style={{ color: theme.colors.text }}>
-          Summary
+          {t('summary')}
         </Text>
         {chartData.map((item, index) => (
           <View key={item.x} style={styles.summaryRow}>
@@ -131,14 +137,14 @@ export default function ChartScreen() {
               <Text variant="bodyMedium">{item.x}</Text>
             </View>
             <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
-              ${item.y.toFixed(2)}
+              {formatCurrency(item.y, selectedCurrency)}
             </Text>
           </View>
         ))}
         <View style={[styles.summaryRow, styles.totalRow]}>
-          <Text variant="titleMedium">Total</Text>
+          <Text variant="titleMedium">{t('total')}</Text>
           <Text variant="titleMedium" style={{ color: theme.colors.primary }}>
-            ${total.toFixed(2)}
+            {formatCurrency(total, selectedCurrency)}
           </Text>
         </View>
       </Surface>
