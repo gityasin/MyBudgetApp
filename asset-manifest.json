@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.js": "/MyBudgetApp/static/js/main.002ff364.js",
-    "static/js/322.0e474c88.js": "/MyBudgetApp/static/js/322.0e474c88.js",
+    "main.js": "/MyBudgetApp/static/js/main.f2bd2ff5.js",
+    "static/js/322.9f03c1aa.js": "/MyBudgetApp/static/js/322.9f03c1aa.js",
     "static/media/MaterialCommunityIcons.ttf": "/MyBudgetApp/static/media/MaterialCommunityIcons.5d42b4e60858731e7b65.ttf",
     "favicon.ico": "/MyBudgetApp/favicon.ico",
     "index.html": "/MyBudgetApp/index.html",
@@ -9,11 +9,11 @@
     "favicon-16.png": "/MyBudgetApp/favicon-16.png",
     "manifest.json": "/MyBudgetApp/manifest.json",
     "serve.json": "/MyBudgetApp/serve.json",
-    "main.002ff364.js.map": "/MyBudgetApp/static/js/main.002ff364.js.map",
-    "322.0e474c88.js.map": "/MyBudgetApp/static/js/322.0e474c88.js.map"
+    "main.f2bd2ff5.js.map": "/MyBudgetApp/static/js/main.f2bd2ff5.js.map",
+    "322.9f03c1aa.js.map": "/MyBudgetApp/static/js/322.9f03c1aa.js.map"
   },
   "entrypoints": [
-    "static/js/322.0e474c88.js",
-    "static/js/main.002ff364.js"
+    "static/js/322.9f03c1aa.js",
+    "static/js/main.f2bd2ff5.js"
   ]
 }
